@@ -1,0 +1,76 @@
+#!/usr/bin/env python
+
+import json
+from subprocess import check_output as execute
+from flask import Flask
+from flask import request
+
+app = Flask(__name__)
+
+
+@app.route('/read')
+def read():
+    execute_result = execute([
+        'hlcli',
+        'smslist',
+        '-boxType',
+        '1',
+        '-count',
+        '20',
+        '-page',
+        '1',
+        # '-v',
+    ])
+
+    result = {}
+    try:
+        _json = json.loads(execute_result)
+        if ('Messages' in _json and
+                'Message' in _json['Messages'] and
+                len(_json['Messages']['Message']) > 0):
+            for message in _json['Messages']['Message']:
+                # If message is unread
+                if int(message['Smstat']) == 0:
+                    print('Found unread message from {}'.format(
+                        message['Phone']
+                    ))
+                    # Copy this message
+                    result['message'] = message['Content']
+                    result['from'] = message['Phone']
+                    result['date'] = message['Date']
+
+                    # Mark it as read now
+                    execute([
+                        'hlcli',
+                        'smsreadset',
+                        '-id',
+                        message['Index'],
+                    ])
+                    break
+    except Exception:
+        pass
+
+    return json.dumps(result)
+
+
+@app.route('/send', methods=['POST'])
+def send():
+    if (request.form['to'] and
+            str(request.form['to']).startswith('33') and
+            request.form['message']):
+        print('Request to send a message to +{}'.format(
+            request.form['to']
+        ))
+        return execute([
+            'hlcli',
+            'smssend',
+            "-to=+{}".format(str(request.form['to'])),
+            "-msg={}".format(str(request.form['message'])),
+        ])
+
+    # Being here means that the parameters were not set correcly
+    return 'KO'
+
+
+if __name__ == "__main__":
+    app.run(host='0.0.0.0')
