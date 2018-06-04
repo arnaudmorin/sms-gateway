@@ -55,22 +55,32 @@ def read():
 
 @app.route('/send', methods=['POST'])
 def send():
+    global token
+    print(request.form['token'])
+    print(token)
     if (request.form['to'] and
-            str(request.form['to']).startswith('33') and
-            request.form['message']):
-        print('Request to send a message to +{}'.format(
-            request.form['to']
-        ))
-        return execute([
-            'hlcli',
-            'smssend',
-            "-to=+{}".format(str(request.form['to'])),
-            "-msg={}".format(str(request.form['message'])),
-        ])
+            request.form['message'] and
+            request.form['token'] == token):
+        # Check that we want to send to a french mobile phone
+        if (str(request.form['to']).startswith('336') or
+                str(request.form['to']).startswith('337')):
+            print('Request to send a message to +{}'.format(
+                request.form['to']
+            ))
+            return execute([
+                'hlcli',
+                'smssend',
+                "-to=+{}".format(str(request.form['to'])),
+                "-msg={}".format(str(request.form['message'])),
+            ])
 
     # Being here means that the parameters were not set correcly
     return 'KO'
 
 
 if __name__ == "__main__":
+    global token
+    # Read token
+    with open('.token') as file:
+        token = file.read().strip()
     app.run(host='0.0.0.0')
