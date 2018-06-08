@@ -11,7 +11,7 @@ app = Flask(__name__)
 @app.route('/read')
 def read():
     execute_result = execute([
-        'hlcli',
+        '/home/arnaud/.local/bin/hlcli',
         'smslist',
         '-boxType',
         '1',
@@ -41,7 +41,7 @@ def read():
 
                     # Mark it as read now
                     execute([
-                        'hlcli',
+                        '/home/arnaud/.local/bin/hlcli',
                         'smsreadset',
                         '-id',
                         message['Index'],
@@ -66,7 +66,7 @@ def send():
                 request.form['to']
             ))
             return execute([
-                'hlcli',
+                '/home/arnaud/.local/bin/hlcli',
                 'smssend',
                 "-to=+{}".format(str(request.form['to'])),
                 "-msg={}".format(str(request.form['message'])),
