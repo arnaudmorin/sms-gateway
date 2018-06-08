@@ -56,8 +56,6 @@ def read():
 @app.route('/send', methods=['POST'])
 def send():
     global token
-    print(request.form['token'])
-    print(token)
     if (request.form['to'] and
             request.form['message'] and
             request.form['token'] == token):
