@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# hello worldié
 
 import json
 from subprocess import check_output as execute
@@ -62,14 +64,15 @@ def send():
         # Check that we want to send to a french mobile phone
         if (str(request.form['to']).startswith('336') or
                 str(request.form['to']).startswith('337')):
-            print('Request to send a message to +{}'.format(
-                request.form['to']
+            print(u'Request to send a message to +{} / {}'.format(
+                request.form['to'],
+                request.form['message'],
             ))
             return execute([
                 '/home/arnaud/.local/bin/hlcli',
                 'smssend',
                 "-to=+{}".format(str(request.form['to'])),
-                "-msg={}".format(str(request.form['message'])),
+                u"-msg={}".format(request.form['message']),
             ])
 
     # Being here means that the parameters were not set correcly
