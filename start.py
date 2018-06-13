@@ -72,7 +72,7 @@ def send():
                 '/home/arnaud/.local/bin/hlcli',
                 'smssend',
                 "-to=+{}".format(str(request.form['to'])),
-                u"-msg={}".format(request.form['message']),
+                u"-msg={}".format(request.form['message']).replace('&', ' '),
             ])
 
     # Being here means that the parameters were not set correcly
