@@ -6,8 +6,11 @@ import json
 from subprocess import check_output as execute
 from flask import Flask
 from flask import request
+import logging
 
 app = Flask(__name__)
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
 
 @app.route('/read')
@@ -77,6 +80,75 @@ def send():
 
     # Being here means that the parameters were not set correcly
     return 'KO'
+
+
+@app.route('/purge', methods=['DELETE'])
+def purge():
+    # Purge inbox
+    execute_result = execute([
+        '/home/arnaud/.local/bin/hlcli',
+        'smslist',
+        '-boxType',
+        '1',
+        '-count',
+        '20',
+        '-page',
+        '1',
+        # '-v',
+    ])
+
+    result = {}
+    try:
+        _json = json.loads(execute_result)
+        if ('Messages' in _json and
+                'Message' in _json['Messages'] and
+                len(_json['Messages']['Message']) > 0):
+            for message in _json['Messages']['Message']:
+                # If message is unread, pass
+                if int(message['Smstat']) == 0:
+                    continue
+                else:
+                    # Delete it
+                    execute([
+                        '/home/arnaud/.local/bin/hlcli',
+                        'smsdelete',
+                        '-id',
+                        message['Index'],
+                    ])
+    except Exception:
+        pass
+
+    # Purge outbox
+    execute_result = execute([
+        '/home/arnaud/.local/bin/hlcli',
+        'smslist',
+        '-boxType',
+        '2',
+        '-count',
+        '20',
+        '-page',
+        '1',
+        # '-v',
+    ])
+
+    result = {}
+    try:
+        _json = json.loads(execute_result)
+        if ('Messages' in _json and
+                'Message' in _json['Messages'] and
+                len(_json['Messages']['Message']) > 0):
+            for message in _json['Messages']['Message']:
+                # Delete it
+                execute([
+                    '/home/arnaud/.local/bin/hlcli',
+                    'smsdelete',
+                    '-id',
+                    message['Index'],
+                ])
+    except Exception:
+        pass
+
+    return json.dumps(result)
 
 
 if __name__ == "__main__":
