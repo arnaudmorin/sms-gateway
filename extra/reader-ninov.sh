@@ -7,8 +7,9 @@ while true ; do
     MESSAGE=$(echo $data | jq '.message' | sed -r 's/"//g')
     #echo "DEBUG $FROM / $MESSAGE"
     if [ "Z$FROM" != "Znull" -a "Z$MESSAGE" != "Znull" ] ; then
+        # Forward to arno.ovh
         echo "Message received: $FROM / $MESSAGE"
-        echo "Message received: $FROM / $MESSAGE" >> /var/log/sms.log
+        curl -X POST -d "SOA=$FROM" -d "Content=$MESSAGE" http://arno.ovh/smsreceiver.php
     fi
     sleep 1
 done
