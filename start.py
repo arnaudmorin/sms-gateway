@@ -57,7 +57,6 @@ def read():
 
     return json.dumps(result)
 
-
 @app.route('/send', methods=['POST'])
 def send():
     global token
